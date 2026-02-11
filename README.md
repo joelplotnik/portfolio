@@ -180,7 +180,7 @@ This project is unlicensed. Contact the author for usage permissions.
 **Joel Plotnik**
 
 - Email: joelplotnik@gmail.com
-- Portfolio: https://joelplotnik.com/
+- Portfolio: joelplotnik.com
 
 ---
 
