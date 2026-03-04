@@ -1,12 +1,13 @@
-// External Imports
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import './Testimonials.scss';
 
+import { motion } from 'framer-motion';
+// External Imports
+import React, { useEffect, useState } from 'react';
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+
+import { client, urlFor } from '../../client';
 // Internal Imports
-import { AppWrap, MotionWrap } from "../../wrapper";
-import { urlFor, client } from "../../client";
-import "./Testimonials.scss";
+import { AppWrap, MotionWrap } from '../../wrapper';
 
 export const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -17,24 +18,33 @@ export const Testimonials = () => {
     setCurrentIndex(index);
   };
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const query = '*[_type == "testimonials"]';
     const brandsQuery = '*[_type == "brands"]';
 
-    client.fetch(query).then((data) => {
-      setTestimonials(data);
-    });
-
-    client.fetch(brandsQuery).then((data) => {
-      setBrands(data);
-    });
+    Promise.all([client.fetch(query), client.fetch(brandsQuery)])
+      .then(([testimonialsData, brandsData]) => {
+        setTestimonials(testimonialsData);
+        setBrands(brandsData);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch testimonials data:', err);
+        setIsLoading(false);
+      });
   }, []);
 
   const test = testimonials[currentIndex];
 
   return (
     <>
-      {testimonials.length && (
+      {isLoading ? (
+        <div className="app__flex" style={{ minHeight: 200 }}>
+          <p className="p-text">Loading...</p>
+        </div>
+      ) : testimonials.length ? (
         <>
           <div className="app__testimonials-item app__flex">
             <img src={urlFor(test.imgurl)} alt="testimonials" />
@@ -47,38 +57,40 @@ export const Testimonials = () => {
             </div>
           </div>
           <div className="app__testimonials-btns app__flex">
-            <div
+            <button
               className="app__flex"
+              aria-label="Previous testimonial"
               onClick={() =>
                 handleClick(
                   currentIndex === 0
                     ? testimonials.length - 1
-                    : currentIndex - 1
+                    : currentIndex - 1,
                 )
               }
             >
               <HiChevronLeft />
-            </div>
-            <div
+            </button>
+            <button
               className="app__flex"
+              aria-label="Next testimonial"
               onClick={() =>
                 handleClick(
                   currentIndex === testimonials.length - 1
                     ? 0
-                    : currentIndex + 1
+                    : currentIndex + 1,
                 )
               }
             >
               <HiChevronRight />
-            </div>
+            </button>
           </div>
         </>
-      )}
+      ) : null}
       <div className="app__testimonials-brands app__flex">
         {brands.map((brand) => (
           <motion.div
             whileInView={{ opacity: [0, 1] }}
-            transition={{ duration: 0.5, type: "tween" }}
+            transition={{ duration: 0.5, type: 'tween' }}
             key={brand._id}
           >
             <img src={urlFor(brand.imgUrl)} alt={brand.name} />
@@ -90,7 +102,7 @@ export const Testimonials = () => {
 };
 
 export default AppWrap(
-  MotionWrap(Testimonials, "app__testimonials"),
-  "testimonials",
-  "app__primarybg"
+  MotionWrap(Testimonials, 'app__testimonials'),
+  'testimonials',
+  'app__primarybg',
 );

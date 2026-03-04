@@ -1,40 +1,60 @@
-import React, { useState } from "react";
+import './Footer.scss';
 
-import { images } from "../../constants";
-import { AppWrap, MotionWrap } from "../../wrapper";
-import { client } from "../../client";
+import React, { useState } from 'react';
 
-import "./Footer.scss";
+import { client } from '../../client';
+import { images } from '../../constants';
+import { AppWrap, MotionWrap } from '../../wrapper';
+
 export const Footer = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
+    name: '',
+    email: '',
+    message: '',
   });
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const { name, email, message } = formData;
   const handleChangeInput = (e) => {
     const { name, value } = e.target;
-
+    setError('');
     setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = () => {
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setLoading(true);
+    setError('');
 
     const contact = {
-      _type: "contact",
+      _type: 'contact',
       name: name,
       email: email,
       message: message,
     };
 
-    client.create(contact).then(() => {
-      setLoading(false);
-      setIsFormSubmitted(true);
-    });
+    client
+      .create(contact)
+      .then(() => {
+        setLoading(false);
+        setIsFormSubmitted(true);
+      })
+      .catch(() => {
+        setLoading(false);
+        setError('Something went wrong. Please try again.');
+      });
   };
 
   return (
@@ -44,7 +64,7 @@ export const Footer = () => {
         <div className="app__footer-card">
           <img src={images.email} alt="email" />
           <a href="mailto:joelplotnik@gmail.com" className="p-text">
-            joelplotnik@gmail
+            joelplotnik@gmail.com
           </a>
         </div>
         <div className="app__footer-card">
@@ -86,8 +106,16 @@ export const Footer = () => {
               onChange={handleChangeInput}
             />
           </div>
+          {error && (
+            <p
+              className="p-text"
+              style={{ color: '#e74c3c', marginTop: '0.5rem' }}
+            >
+              {error}
+            </p>
+          )}
           <button type="button" className="p-text" onClick={handleSubmit}>
-            {loading ? "Sending" : "Send Message"}
+            {loading ? 'Sending' : 'Send Message'}
           </button>
         </div>
       ) : (
@@ -100,7 +128,7 @@ export const Footer = () => {
 };
 
 export default AppWrap(
-  MotionWrap(Footer, "app__footer"),
-  "contact",
-  "app__whitebg"
+  MotionWrap(Footer, 'app__footer'),
+  'contact',
+  'app__whitebg',
 );

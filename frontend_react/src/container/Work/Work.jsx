@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { AiFillEye, AiFillGithub } from 'react-icons/ai';
-import { motion } from 'framer-motion';
-
-import { AppWrap, MotionWrap } from '../../wrapper';
-import { urlFor, client } from '../../client';
 import './Work.scss';
+
+import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { AiFillEye, AiFillGithub } from 'react-icons/ai';
+
+import { client, urlFor } from '../../client';
+import { AppWrap, MotionWrap } from '../../wrapper';
 
 export const Work = () => {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -12,12 +13,21 @@ export const Work = () => {
   const [work, setWork] = useState([]);
   const [filterWork, setFilterWork] = useState([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const query = '*[_type == "work"]';
-    client.fetch(query).then((data) => {
-      setWork(data);
-      setFilterWork(data);
-    });
+    client
+      .fetch(query)
+      .then((data) => {
+        setWork(data);
+        setFilterWork(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch work data:', err);
+        setIsLoading(false);
+      });
   }, []);
 
   const handleWorkFilter = (item) => {
@@ -52,61 +62,68 @@ export const Work = () => {
             >
               {item}
             </div>
-          )
+          ),
         )}
       </div>
-      <motion.div
-        animate={animateCard}
-        transition={{ duration: 0.5, delayChildren: 0.5 }}
-        className="app__work-portfolio"
-      >
-        {filterWork.map((work, index) => (
-          <div className="app__work-item app__flex" key={index}>
-            <div className="app__work-img app__flex">
-              <img src={urlFor(work.imgUrl)} alt={work.name} />
-              <motion.div
-                // whileHover={{ opacity: [0, 1] }}
-                // transition={{
-                //   duration: 0.25,
-                //   ease: "easeInOut",
-                //   staggerChildren: 0.5,
-                // }}
-                className="app__work-hover app__flex"
-              >
-                <a href={work.projectLink} target="_blank" rel="noreferrer">
-                  <motion.div
-                    whileInView={{ scale: [0, 1] }}
-                    whileHover={{ scale: [1, 0.9] }}
-                    transition={{ duration: 0.25 }}
-                    className="app__flex"
-                  >
-                    <AiFillEye />
-                  </motion.div>
-                </a>
-                <a href={work.codeLink} target="_blank" rel="noreferrer">
-                  <motion.div
-                    whileInView={{ scale: [0, 1] }}
-                    whileHover={{ scale: [1, 0.9] }}
-                    transition={{ duration: 0.25 }}
-                    className="app__flex"
-                  >
-                    <AiFillGithub />
-                  </motion.div>
-                </a>
-              </motion.div>
-            </div>
-            <div className="app__work-content app__flex">
-              <h4 className="bold-text">{work.title}</h4>
-              <p className="p-text" style={{ marginTop: 10 }}>
-                {work.description}
-              </p>
-              <div className="app__work-tag app__flex">
-                <p className="p-text">{work.tags[0]}</p>
+      {isLoading ? (
+        <div className="app__flex" style={{ minHeight: 200 }}>
+          <p className="p-text">Loading...</p>
+        </div>
+      ) : (
+        <motion.div
+          animate={animateCard}
+          transition={{ duration: 0.5, delayChildren: 0.5 }}
+          className="app__work-portfolio"
+        >
+          {filterWork.map((work, index) => (
+            <div className="app__work-item app__flex" key={index}>
+              <div className="app__work-img app__flex">
+                <img src={urlFor(work.imgUrl)} alt={work.name} />
+                <motion.div
+                  whileHover={{ opacity: [0, 1] }}
+                  whileTap={{ opacity: [0, 1] }}
+                  transition={{
+                    duration: 0.25,
+                    ease: 'easeInOut',
+                    staggerChildren: 0.5,
+                  }}
+                  className="app__work-hover app__flex"
+                >
+                  <a href={work.projectLink} target="_blank" rel="noreferrer">
+                    <motion.div
+                      whileInView={{ scale: [0, 1] }}
+                      whileHover={{ scale: [1, 0.9] }}
+                      transition={{ duration: 0.25 }}
+                      className="app__flex"
+                    >
+                      <AiFillEye />
+                    </motion.div>
+                  </a>
+                  <a href={work.codeLink} target="_blank" rel="noreferrer">
+                    <motion.div
+                      whileInView={{ scale: [0, 1] }}
+                      whileHover={{ scale: [1, 0.9] }}
+                      transition={{ duration: 0.25 }}
+                      className="app__flex"
+                    >
+                      <AiFillGithub />
+                    </motion.div>
+                  </a>
+                </motion.div>
+              </div>
+              <div className="app__work-content app__flex">
+                <h4 className="bold-text">{work.title}</h4>
+                <p className="p-text" style={{ marginTop: 10 }}>
+                  {work.description}
+                </p>
+                <div className="app__work-tag app__flex">
+                  <p className="p-text">{work.tags[0]}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </motion.div>
+          ))}
+        </motion.div>
+      )}
     </>
   );
 };
