@@ -179,7 +179,6 @@ This project is unlicensed. Contact the author for usage permissions.
 
 **Joel Plotnik**
 
-- Email: joelplotnik@gmail.com
 - Portfolio: www.joelplotnik.com
 
 ---

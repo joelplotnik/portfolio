@@ -1,9 +1,8 @@
 import './Footer.scss';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { client } from '../../client';
-import { images } from '../../constants';
 import { AppWrap, MotionWrap } from '../../wrapper';
 
 export const Footer = () => {
@@ -60,21 +59,6 @@ export const Footer = () => {
   return (
     <>
       <h2 className="head-text">Chat with me</h2>
-      <div className="app__footer-cards">
-        <div className="app__footer-card">
-          <img src={images.email} alt="email" />
-          <a href="mailto:joelplotnik@gmail.com" className="p-text">
-            joelplotnik@gmail.com
-          </a>
-        </div>
-        <div className="app__footer-card">
-          <img src={images.mobile} alt="mobile" />
-          <a href="tel: +1 (760) 390-1043" className="p-text">
-            +1 (760) 390-1043
-          </a>
-        </div>
-      </div>
-
       {!isFormSubmitted ? (
         <div className="app__footer-form app__flex">
           <div className="app__flex">
