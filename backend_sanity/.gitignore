@@ -1,2 +1,9 @@
 # dependencies
 /node_modules
+
+# build output
+/dist
+
+# sanity dev server runtime cache
+/.sanity
+schema.json
