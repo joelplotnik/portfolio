@@ -14,3 +14,10 @@
   # is old enough that newer Node/typescript resolutions break it — see the
   # `overrides` block in frontend_react/package.json.
   NODE_VERSION = "18"
+
+[functions]
+  # Resolved relative to `base`, i.e. frontend_react/netlify/functions.
+  # Functions bundle their deps from frontend_react/node_modules, which is
+  # where @sanity/client already lives.
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

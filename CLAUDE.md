@@ -31,14 +31,16 @@ No test suite exists beyond the CRA default. No lint/format script is wired up �
 
 ## Environment
 
-`frontend_react/.env` (git-ignored, must exist locally and in Netlify's env settings):
+`frontend_react/.env` (git-ignored; both must also be set in Netlify):
 
 ```
-REACT_APP_SANITY_PROJECT_ID=e612k9ar
-REACT_APP_SANITY_TOKEN=<sanity api token with write access>
+REACT_APP_SANITY_PROJECT_ID=e612k9ar   # public — also in backend_sanity/sanity.json
+SANITY_TOKEN=<sanity token with write access>   # server-side only
 ```
 
-The token needs **write** permission because the contact form calls `client.create()` from the browser. CRA inlines env vars at build time, so this token ships inside the public bundle — treat it as semi-public, keep its scope minimal, and never widen it.
+**The `REACT_APP_` prefix is a security boundary, not a naming convention.** CRA inlines every `REACT_APP_*` var into the public bundle. The write token therefore must *not* carry that prefix — it is read only by the Netlify Function. Never rename it to `REACT_APP_SANITY_TOKEN`.
+
+The browser client in [client.js](frontend_react/src/client.js) is unauthenticated: the production dataset allows public reads, so no token is needed for content. The only write is the contact form, which goes through the function below.
 
 ## Frontend architecture
 
@@ -62,6 +64,10 @@ Anchor lists come from one place: [constants/sections.js](frontend_react/src/con
 **Barrel files** re-export everything; a new component/container/wrapper is invisible until added to its `index.js` ([container](frontend_react/src/container/index.js), [components](frontend_react/src/components/index.js), [wrapper](frontend_react/src/wrapper/index.js)).
 
 **Sanity access** is via [client.js](frontend_react/src/client.js), exporting `client` (GROQ queries) and `urlFor(source)` (image URL builder — required for any Sanity image field; raw `imgUrl` objects won't render in `<img src>`).
+
+**Contact form writes go server-side.** [Footer.jsx](frontend_react/src/container/Footer/Footer.jsx) POSTs to `/.netlify/functions/submit-contact` ([source](frontend_react/netlify/functions/submit-contact.js)), which holds `SANITY_TOKEN` and creates the `contact` document. The function revalidates every field — the client-side checks are for fast feedback only and are trivially bypassed. Because the endpoint is public, keep the length caps and validation there.
+
+Running `npm start` alone leaves that endpoint 404ing. To exercise the form locally use `npx netlify dev`, which serves the function alongside the dev server and loads `.env`.
 
 **Data-fetching pattern** — every content section does the same thing: `useState` + `useEffect`, GROQ query, `.then` sets state and clears `isLoading`, `.catch` logs and clears `isLoading`, and the JSX renders a `Loading...` block while pending. Match this shape when adding a section rather than introducing a data library.
 
@@ -97,7 +103,7 @@ The `sanity-plugin-order-documents` plugin provides the drag-ordering that popul
 ### Known data traps
 
 - `testimonials.imgurl` is lowercase while every other image field is `imgUrl`. Easy to typo.
-- [Work.jsx](frontend_react/src/container/Work/Work.jsx) hardcodes its filter buttons — `UI/UX, Web App, Mobile App, React JS, All` — and these strings must exactly match tags entered in Sanity, or a filter silently returns nothing. (Untagged documents no longer crash, they just never match a filter.)
+- Work filter buttons are derived from the tags present in the fetched documents, so a new tag in Sanity appears automatically and no filter can render that matches nothing. Note that `All` is the reset sentinel *and* exists as a literal tag on at least one document — [Work.jsx](frontend_react/src/container/Work/Work.jsx) deletes it from the derived set to avoid rendering it twice. Don't remove that line without also cleaning up the CMS.
 - `work` has no `name` field — it's `title`. Don't reintroduce `work.name`; it silently yields `undefined`.
 - `Testimonials` and `Skills` fetch two document types with `Promise.all`; keep that shape if you add a third.
 

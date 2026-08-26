@@ -70,7 +70,7 @@ npm install
 
 ```
 REACT_APP_SANITY_PROJECT_ID=your_project_id
-REACT_APP_SANITY_TOKEN=your_token
+SANITY_TOKEN=your_token
 ```
 
 4. Start the development server:
@@ -87,7 +87,7 @@ Create a `.env` file in the `frontend_react` directory:
 
 ```
 REACT_APP_SANITY_PROJECT_ID=your_sanity_project_id
-REACT_APP_SANITY_TOKEN=your_sanity_api_token
+SANITY_TOKEN=your_sanity_api_token
 ```
 
 Get these values from your Sanity dashboard at `sanity.io/manage`.
@@ -103,8 +103,12 @@ overrides any build settings in the Netlify dashboard:
 - **Node version**: 18, via `NODE_VERSION`
 
 The only thing that still has to be set in the Netlify dashboard is the
-**environment variables** (`REACT_APP_SANITY_PROJECT_ID` and
-`REACT_APP_SANITY_TOKEN`) — those are secrets and stay out of the repo.
+**environment variables** (`REACT_APP_SANITY_PROJECT_ID` and `SANITY_TOKEN`).
+
+> **Note:** `SANITY_TOKEN` deliberately has no `REACT_APP_` prefix. Create React
+> App inlines every `REACT_APP_*` variable into the public JavaScript bundle, so
+> a write-scoped token must never use that prefix. It is read only by the
+> Netlify Function that handles contact form submissions.
 
 To reproduce a deploy locally, match what Netlify actually runs:
 

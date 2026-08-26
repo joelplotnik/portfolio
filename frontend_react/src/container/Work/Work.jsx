@@ -1,7 +1,7 @@
 import './Work.scss';
 
 import { motion } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AiFillEye, AiFillGithub } from 'react-icons/ai';
 
 import { client, urlFor } from '../../client';
@@ -30,6 +30,19 @@ export const Work = () => {
       });
   }, []);
 
+  // Derived from the tags actually present in the CMS rather than hardcoded,
+  // so a filter can never be shown that matches nothing — and a new tag in
+  // Sanity shows up without a code change.
+  const filters = useMemo(() => {
+    const tags = new Set();
+    work.forEach((item) => item.tags?.forEach((tag) => tags.add(tag)));
+    // 'All' is the reset sentinel appended below. At least one document in the
+    // CMS also carries it as a literal tag, so drop it here or it renders twice
+    // and collides as a duplicate React key.
+    tags.delete('All');
+    return [...Array.from(tags).sort(), 'All'];
+  }, [work]);
+
   const handleWorkFilter = (item) => {
     setActiveFilter(item);
     setAnimateCard([{ y: 100, opacity: 0 }]);
@@ -51,19 +64,17 @@ export const Work = () => {
         My <span>Portfolio</span>
       </h2>
       <div className="app__work-filter">
-        {['UI/UX', 'Web App', 'Mobile App', 'React JS', 'All'].map(
-          (item, index) => (
-            <div
-              key={index}
-              onClick={() => handleWorkFilter(item)}
-              className={`app__work-filter-item app__flex p-text ${
-                activeFilter === item ? 'item-active' : ''
-              }`}
-            >
-              {item}
-            </div>
-          ),
-        )}
+        {filters.map((item) => (
+          <div
+            key={item}
+            onClick={() => handleWorkFilter(item)}
+            className={`app__work-filter-item app__flex p-text ${
+              activeFilter === item ? 'item-active' : ''
+            }`}
+          >
+            {item}
+          </div>
+        ))}
       </div>
       {isLoading ? (
         <div className="app__flex" style={{ minHeight: 200 }}>
