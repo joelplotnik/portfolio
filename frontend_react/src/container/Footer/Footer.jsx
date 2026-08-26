@@ -2,7 +2,6 @@ import './Footer.scss';
 
 import { useState } from 'react';
 
-import { client } from '../../client';
 import { AppWrap, MotionWrap } from '../../wrapper';
 
 export const Footer = () => {
@@ -37,22 +36,28 @@ export const Footer = () => {
     setLoading(true);
     setError('');
 
-    const contact = {
-      _type: 'contact',
-      name: name,
-      email: email,
-      message: message,
-    };
-
-    client
-      .create(contact)
+    // Posts to a Netlify Function rather than writing to Sanity directly —
+    // the write token cannot live in the browser bundle. Running `npm start`
+    // alone will 404 here; use `npx netlify dev` to exercise the form locally.
+    fetch('/.netlify/functions/submit-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, message }),
+    })
+      .then((response) =>
+        response.json().then((body) => {
+          if (!response.ok) {
+            throw new Error(body.error || 'Something went wrong.');
+          }
+        }),
+      )
       .then(() => {
         setLoading(false);
         setIsFormSubmitted(true);
       })
-      .catch(() => {
+      .catch((err) => {
         setLoading(false);
-        setError('Something went wrong. Please try again.');
+        setError(err.message || 'Something went wrong. Please try again.');
       });
   };
 

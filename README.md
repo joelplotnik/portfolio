@@ -12,15 +12,21 @@ A modern portfolio website built with React and Sanity CMS, featuring smooth ani
 
 ```
 Portfolio/
+├── netlify.toml             # Netlify deploy configuration
+├── .nvmrc                   # Pinned Node version (18)
 ├── frontend_react/          # React frontend application
-├── backend_sanity/          # Sanity CMS backend
+└── backend_sanity/          # Sanity CMS backend
 ```
+
+The two apps are independent — each has its own `package.json` and committed
+`package-lock.json`. There is no root manifest and no npm workspace, so `cd`
+into the app you're working on first. Both use npm.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js 18 (see `.nvmrc` — `nvm use` will pick it up)
 - npm
 - Sanity account (for CMS backend)
 
@@ -64,7 +70,7 @@ npm install
 
 ```
 REACT_APP_SANITY_PROJECT_ID=your_project_id
-REACT_APP_SANITY_TOKEN=your_token
+SANITY_TOKEN=your_token
 ```
 
 4. Start the development server:
@@ -81,31 +87,38 @@ Create a `.env` file in the `frontend_react` directory:
 
 ```
 REACT_APP_SANITY_PROJECT_ID=your_sanity_project_id
-REACT_APP_SANITY_TOKEN=your_sanity_api_token
+SANITY_TOKEN=your_sanity_api_token
 ```
 
 Get these values from your Sanity dashboard at `sanity.io/manage`.
 
 ## Deployment to Netlify
 
-1. Build the frontend application:
+Deploys are driven by [`netlify.toml`](netlify.toml) in the repo root, which
+overrides any build settings in the Netlify dashboard:
+
+- **Base directory**: `frontend_react` (Netlify installs from its lockfile here)
+- **Build command**: `npm run build`
+- **Publish directory**: `build` (relative to base → `frontend_react/build`)
+- **Node version**: 18, via `NODE_VERSION`
+
+The only thing that still has to be set in the Netlify dashboard is the
+**environment variables** (`REACT_APP_SANITY_PROJECT_ID` and `SANITY_TOKEN`).
+
+> **Note:** `SANITY_TOKEN` deliberately has no `REACT_APP_` prefix. Create React
+> App inlines every `REACT_APP_*` variable into the public JavaScript bundle, so
+> a write-scoped token must never use that prefix. It is read only by the
+> Netlify Function that handles contact form submissions.
+
+To reproduce a deploy locally, match what Netlify actually runs:
 
 ```bash
 cd frontend_react
-npm run build
+npm ci
+CI=true npm run build   # CI=true makes eslint warnings fail the build
 ```
 
-2. Deploy to Netlify:
-   - Drag and drop the `build` folder from `frontend_react/` into Netlify
-   - Or connect your Git repository for automatic deployments
-
-### Netlify Configuration
-
-For automatic deployments from Git, add these build settings in Netlify:
-
-- **Build command**: `cd frontend_react && npm run build`
-- **Publish directory**: `frontend_react/build`
-- **Environment variables**: Add your Sanity credentials
+The Sanity Studio is deployed separately with `sanity deploy`, not by Netlify.
 
 ## Features
 

@@ -1,7 +1,7 @@
 import './Work.scss';
 
 import { motion } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AiFillEye, AiFillGithub } from 'react-icons/ai';
 
 import { client, urlFor } from '../../client';
@@ -30,6 +30,19 @@ export const Work = () => {
       });
   }, []);
 
+  // Derived from the tags actually present in the CMS rather than hardcoded,
+  // so a filter can never be shown that matches nothing — and a new tag in
+  // Sanity shows up without a code change.
+  const filters = useMemo(() => {
+    const tags = new Set();
+    work.forEach((item) => item.tags?.forEach((tag) => tags.add(tag)));
+    // 'All' is the reset sentinel appended below. At least one document in the
+    // CMS also carries it as a literal tag, so drop it here or it renders twice
+    // and collides as a duplicate React key.
+    tags.delete('All');
+    return [...Array.from(tags).sort(), 'All'];
+  }, [work]);
+
   const handleWorkFilter = (item) => {
     setActiveFilter(item);
     setAnimateCard([{ y: 100, opacity: 0 }]);
@@ -40,7 +53,7 @@ export const Work = () => {
       if (item === 'All') {
         setFilterWork(work);
       } else {
-        setFilterWork(work.filter((work) => work.tags.includes(item)));
+        setFilterWork(work.filter((work) => work.tags?.includes(item)));
       }
     }, 500);
   };
@@ -51,19 +64,17 @@ export const Work = () => {
         My <span>Portfolio</span>
       </h2>
       <div className="app__work-filter">
-        {['UI/UX', 'Web App', 'Mobile App', 'React JS', 'All'].map(
-          (item, index) => (
-            <div
-              key={index}
-              onClick={() => handleWorkFilter(item)}
-              className={`app__work-filter-item app__flex p-text ${
-                activeFilter === item ? 'item-active' : ''
-              }`}
-            >
-              {item}
-            </div>
-          ),
-        )}
+        {filters.map((item) => (
+          <div
+            key={item}
+            onClick={() => handleWorkFilter(item)}
+            className={`app__work-filter-item app__flex p-text ${
+              activeFilter === item ? 'item-active' : ''
+            }`}
+          >
+            {item}
+          </div>
+        ))}
       </div>
       {isLoading ? (
         <div className="app__flex" style={{ minHeight: 200 }}>
@@ -75,10 +86,10 @@ export const Work = () => {
           transition={{ duration: 0.5, delayChildren: 0.5 }}
           className="app__work-portfolio"
         >
-          {filterWork.map((work, index) => (
-            <div className="app__work-item app__flex" key={index}>
+          {filterWork.map((work) => (
+            <div className="app__work-item app__flex" key={work._id}>
               <div className="app__work-img app__flex">
-                <img src={urlFor(work.imgUrl)} alt={work.name} />
+                <img src={urlFor(work.imgUrl)} alt={work.title} />
                 <motion.div
                   whileHover={{ opacity: [0, 1] }}
                   whileTap={{ opacity: [0, 1] }}
@@ -116,9 +127,11 @@ export const Work = () => {
                 <p className="p-text" style={{ marginTop: 10 }}>
                   {work.description}
                 </p>
-                <div className="app__work-tag app__flex">
-                  <p className="p-text">{work.tags[0]}</p>
-                </div>
+                {work.tags?.[0] && (
+                  <div className="app__work-tag app__flex">
+                    <p className="p-text">{work.tags[0]}</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}

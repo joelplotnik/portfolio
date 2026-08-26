@@ -39,10 +39,6 @@ logs/
 *.compiled.js
 *.map
 
-# Dependency lock files
-package-lock.json
-yarn.lock
-
 # Other generated files
 *.zip
 *.rar

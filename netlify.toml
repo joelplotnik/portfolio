@@ -1,0 +1,23 @@
+# Deploy configuration lives in the repo, not the Netlify dashboard, so a fresh
+# clone builds identically. This file takes precedence over the UI settings.
+
+[build]
+  # Netlify runs its dependency install against the manifest found in `base`.
+  # Pointing base at the app (rather than the repo root) is what makes it run
+  # `npm ci` for the frontend. `publish` resolves relative to `base`.
+  base = "frontend_react"
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  # Pinned to the version this build is verified against. react-scripts 5.0.1
+  # is old enough that newer Node/typescript resolutions break it — see the
+  # `overrides` block in frontend_react/package.json.
+  NODE_VERSION = "18"
+
+[functions]
+  # Resolved relative to `base`, i.e. frontend_react/netlify/functions.
+  # Functions bundle their deps from frontend_react/node_modules, which is
+  # where @sanity/client already lives.
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
