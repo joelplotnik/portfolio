@@ -1,0 +1,50 @@
+[
+  {
+    "_createdAt": "2022-08-03T04:51:32Z",
+    "_id": "d54b1fa8-cfb9-4d03-8c2b-ac7d445d2d63",
+    "_rev": "4ZlP0LVSOzxopBYG1EcMSc",
+    "_type": "experience",
+    "_updatedAt": "2023-02-06T04:50:32Z",
+    "works": [
+      {
+        "_key": "6d7542eb7d78",
+        "_type": "workExperience",
+        "company": "Engiven",
+        "desc": "Engiven is an enterprise donation platform that assists nonprofits to add cryptocurrency donations to help fund their causes.",
+        "name": "Associate Software Engineer"
+      },
+      {
+        "_key": "d36a5b436190",
+        "_type": "workExperience",
+        "company": "California State University San Marcos",
+        "desc": "This program provided me with the ability to show mastery of software engineering knowledge and skills and the professional standards necessary to begin practice as a software engineer.",
+        "name": "Bachelor of Science in Software Engineering; cum luade"
+      }
+    ],
+    "year": "2022"
+  },
+  {
+    "_createdAt": "2022-08-03T04:39:59Z",
+    "_id": "f9b51a4c-4929-459f-bed7-b05ca9d4e60c",
+    "_rev": "MS5coz2uucvZJl7Uk1Qi7e",
+    "_type": "experience",
+    "_updatedAt": "2022-08-03T04:44:05Z",
+    "works": [
+      {
+        "_key": "b65dfe4db1e7",
+        "_type": "workExperience",
+        "company": "Palomar College",
+        "desc": "The program offered a foundation in data structures, computer architecture, software design, algorithms, programming languages, and object-oriented programming.",
+        "name": "Associate of Science in Computer Science"
+      },
+      {
+        "_key": "3cb792c25914",
+        "_type": "workExperience",
+        "company": "Palomar College",
+        "desc": "This program focused on training in the scientific method, the fundamental principles of natural science, and the principle laws and theories governing the physical and life sciences.",
+        "name": "Associate of Science in Math & Science"
+      }
+    ],
+    "year": "2020"
+  }
+]
