@@ -2,7 +2,7 @@ import './Testimonials.scss';
 
 import { motion } from 'framer-motion';
 // External Imports
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 import { client, urlFor } from '../../client';

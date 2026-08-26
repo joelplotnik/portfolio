@@ -4,7 +4,7 @@ A modern portfolio website built with React and Sanity CMS, featuring smooth ani
 
 ## Tech Stack
 
-- **Frontend**: React 18, Framer Motion, SCSS
+- **Frontend**: React 18, Vite 5, Framer Motion, SCSS
 - **Backend**: Sanity CMS (Headless CMS)
 - **Deployment**: Netlify
 
@@ -114,8 +114,8 @@ To reproduce a deploy locally, match what Netlify actually runs:
 
 ```bash
 cd frontend_react
-npm ci
-CI=true npm run build   # CI=true makes eslint warnings fail the build
+npm ci          # installs exactly the committed lockfile, as Netlify does
+npm run build
 ```
 
 The Sanity Studio is deployed separately with `sanity deploy`, not by Netlify.
@@ -174,10 +174,12 @@ Access the CMS at `http://localhost:3333` when running `sanity start`.
 
 ### Frontend (`frontend_react/package.json`)
 
-- `npm start` - Start development server
-- `npm run build` - Build for production
-- `npm test` - Run tests
-- `npm run eject` - Eject from Create React App
+- `npm start` (or `npm run dev`) - Start the Vite dev server on port 3000
+- `npm run build` - Build for production into `build/`
+- `npm run preview` - Serve the production build locally
+- `npm run lint` - Run ESLint
+
+Note that `npm run build` does **not** run ESLint; they are separate steps.
 
 ### Backend (`backend_sanity/package.json`)
 

@@ -1,7 +1,7 @@
 import './Skills.scss';
 
 import { motion } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import ReactTooltip from 'react-tooltip';
 
 import { client, urlFor } from '../../client';
@@ -66,7 +66,7 @@ const Skills = () => {
                 </div>
                 <motion.div className="app__skills-exp-works">
                   {experience.works.map((work) => (
-                    <React.Fragment key={work.name}>
+                    <Fragment key={work.name}>
                       <motion.div
                         whileInView={{ opacity: [0, 1] }}
                         transition={{ duration: 0.5 }}
@@ -86,7 +86,7 @@ const Skills = () => {
                       >
                         {work.desc}
                       </ReactTooltip>
-                    </React.Fragment>
+                    </Fragment>
                   ))}
                 </motion.div>
               </motion.div>

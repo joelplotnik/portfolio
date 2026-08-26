@@ -1,0 +1,10 @@
+{
+  // This repo holds two independent apps, each with its own node_modules and
+  // its own ESLint setup. Without this, the extension resolves ESLint from the
+  // workspace root — where neither exists — and reports misleading failures
+  // such as "Cannot find module '@babel/preset-env'" on the Sanity schemas.
+  "eslint.workingDirectories": [
+    { "directory": "frontend_react", "changeProcessCWD": true },
+    { "directory": "backend_sanity", "changeProcessCWD": true }
+  ]
+}
