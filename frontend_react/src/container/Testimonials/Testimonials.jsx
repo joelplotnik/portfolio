@@ -47,7 +47,13 @@ export const Testimonials = () => {
       ) : testimonials.length ? (
         <>
           <div className="app__testimonials-item app__flex">
-            <img src={urlFor(test.imgurl)} alt="testimonials" />
+            {/* `imgurl` is the pre-migration spelling. Once
+                scripts/rename-testimonial-imgurl.js has been applied to every
+                environment, this fallback can be dropped. */}
+            <img
+              src={urlFor(test.imgUrl ?? test.imgurl)}
+              alt={`${test.name}, ${test.company}`}
+            />
             <div className="app__testimonials-content">
               <p className="p-text">{test.feedback}</p>
               <div>

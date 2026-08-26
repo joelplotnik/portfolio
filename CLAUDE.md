@@ -98,7 +98,7 @@ Schemas in [backend_sanity/schemas/](backend_sanity/schemas/); a new schema file
 | `skills` | name, bgColor (hex string used as inline style), icon |
 | `experiences` | year, works[] of `workExperience`; hidden `order` number field drives sorting |
 | `workExperience` | name, company, desc — an `object`, embedded only inside `experiences.works` |
-| `testimonials` | name, company, **`imgurl`** (lowercase — inconsistent with the rest), feedback |
+| `testimonials` | name, company, imgUrl, feedback |
 | `brands` | imgUrl, name |
 | `contact` | name, email, message — **written by the site**, not authored in the studio |
 
@@ -106,7 +106,7 @@ The `sanity-plugin-order-documents` plugin provides the drag-ordering that popul
 
 ### Known data traps
 
-- `testimonials.imgurl` is lowercase while every other image field is `imgUrl`. Easy to typo.
+- `testimonials.imgUrl` was spelled `imgurl` until it was renamed. [Testimonials.jsx](frontend_react/src/container/Testimonials/Testimonials.jsx) still reads `test.imgUrl ?? test.imgurl`; that fallback exists only until `backend_sanity/scripts/rename-testimonial-imgurl.js` has been applied everywhere, then it can go.
 - Work filter buttons are derived from the tags present in the fetched documents, so a new tag in Sanity appears automatically and no filter can render that matches nothing. Note that `All` is the reset sentinel *and* exists as a literal tag on at least one document — [Work.jsx](frontend_react/src/container/Work/Work.jsx) deletes it from the derived set to avoid rendering it twice. Don't remove that line without also cleaning up the CMS.
 - `work` has no `name` field — it's `title`. Don't reintroduce `work.name`; it silently yields `undefined`.
 - `Testimonials` and `Skills` fetch two document types with `Promise.all`; keep that shape if you add a third.
@@ -116,9 +116,24 @@ The `sanity-plugin-order-documents` plugin provides the drag-ordering that popul
 - Function components only, no TypeScript, no PropTypes on the frontend.
 - **Any file containing JSX must be `.jsx`.** Vite's esbuild will not parse JSX from a `.js` file. Non-JSX modules (`client.js`, barrels, constants) stay `.js`.
 - No `import React` — the automatic JSX runtime handles it. Import hooks and `Fragment` by name instead.
-- Newer files use single quotes with sorted imports (external before internal); older files (`Header.jsx`, wrappers) use double quotes and unsorted imports. There's no formatter enforcing either — match the file you're editing.
+- **Prettier owns formatting.** Config is `.prettierrc` at the repo root and applies to both apps (Prettier resolves config by walking up from the file). Run `npm run format` in either package; `npm run format:check` verifies without writing. Single quotes, trailing commas, 80 columns. Don't hand-format against it.
+- Import order is *not* enforced by anything. Most files group side-effect imports, then external packages, then relative ones — follow that by hand.
 - External links always carry `target="_blank" rel="noreferrer"`.
 - Icon buttons and bare anchors need `aria-label` (and `sr-only` text where the link has no visible content) — accessibility was cleaned up deliberately in a recent commit; don't regress it.
+
+## Maintenance scripts
+
+[backend_sanity/scripts/](backend_sanity/scripts/) holds one-off data migrations. They use the Sanity HTTP API directly through `fetch` and have no dependencies, so they run without the Studio's tree installed.
+
+**Every script is dry-run by default and needs `--apply` to write.** Keep that convention for anything added there.
+
+```bash
+cd backend_sanity
+node scripts/rename-testimonial-imgurl.js                    # preview
+SANITY_TOKEN=<token> node scripts/rename-testimonial-imgurl.js --apply
+```
+
+The token needs Editor permission and is the same one the contact-form function uses. Two gotchas the existing scripts already account for: GROQ projects absent fields as explicit `null` rather than `undefined`, so test truthiness rather than `!== undefined`; and the API version in the URL needs its `v` prefix (`v2022-02-01`) or every request 404s.
 
 ## Deployment
 
