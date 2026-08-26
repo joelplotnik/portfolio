@@ -8,7 +8,7 @@ Personal portfolio site: single-page React frontend that reads its content from 
 Portfolio/
 ├── netlify.toml          # deploy config (base = frontend_react)
 ├── .nvmrc                # Node 18
-├── frontend_react/       # Create React App (react-scripts 5) — the actual site
+├── frontend_react/       # Vite 5 + React 18 — the actual site
 └── backend_sanity/       # Sanity Studio v2 — content schemas + admin UI
 ```
 
@@ -19,15 +19,17 @@ There is **no** root `package.json` and no npm workspace — the two apps are in
 ```bash
 # Frontend (http://localhost:3000)
 cd frontend_react && npm install
-cd frontend_react && npm start
+cd frontend_react && npm start          # or `npm run dev` — same thing
 cd frontend_react && npm run build      # → frontend_react/build/, deployed to Netlify
+cd frontend_react && npm run preview    # serve the production build locally
+cd frontend_react && npm run lint
 
 # Sanity Studio (http://localhost:3333)
 cd backend_sanity && sanity start
 cd backend_sanity && sanity deploy      # publishes the hosted studio
 ```
 
-No test suite exists beyond the CRA default. No lint/format script is wired up — `frontend_react/package.json` only carries the stock `eslintConfig` (`react-app`).
+There is no test suite. **`npm run build` does not lint** — Vite and ESLint are separate, unlike CRA where linting ran inside the build. Run `npm run lint` yourself before pushing, or chain it into `build` if you want deploys to fail on lint errors.
 
 ## Environment
 
@@ -112,7 +114,8 @@ The `sanity-plugin-order-documents` plugin provides the drag-ordering that popul
 ## Conventions
 
 - Function components only, no TypeScript, no PropTypes on the frontend.
-- Containers are `.jsx`, everything else (`client.js`, wrappers, barrels, constants) is `.js`.
+- **Any file containing JSX must be `.jsx`.** Vite's esbuild will not parse JSX from a `.js` file. Non-JSX modules (`client.js`, barrels, constants) stay `.js`.
+- No `import React` — the automatic JSX runtime handles it. Import hooks and `Fragment` by name instead.
 - Newer files use single quotes with sorted imports (external before internal); older files (`Header.jsx`, wrappers) use double quotes and unsorted imports. There's no formatter enforcing either — match the file you're editing.
 - External links always carry `target="_blank" rel="noreferrer"`.
 - Icon buttons and bare anchors need `aria-label` (and `sr-only` text where the link has no visible content) — accessibility was cleaned up deliberately in a recent commit; don't regress it.
@@ -121,16 +124,17 @@ The `sanity-plugin-order-documents` plugin provides the drag-ordering that popul
 
 Netlify, configured by [netlify.toml](netlify.toml) at the repo root — that file overrides the dashboard UI. `base = "frontend_react"`, so Netlify runs `npm ci` against the frontend's lockfile and `publish = "build"` resolves to `frontend_react/build`. Node is pinned to 18 via `NODE_VERSION`.
 
-Netlify sets `CI=true`, which promotes eslint warnings to errors — reproduce a deploy locally with `cd frontend_react && npm ci && CI=true npm run build`, not a plain `npm run build`.
+Reproduce a deploy locally with `cd frontend_react && npm ci && npm run build`. `npm ci` matters — it installs exactly the committed lockfile, which is what Netlify does.
 
 The Sanity Studio is **not** deployed by Netlify; it publishes separately with `sanity deploy`. Live at www.joelplotnik.com.
 
 ## Gotchas
 
-- **`overrides.typescript` in [frontend_react/package.json](frontend_react/package.json) is load-bearing.** `react-scripts@5.0.1` declares `typescript` as an optional peer at `^3.2.1 || ^4`, but a fresh npm resolve now pulls typescript 7, whose changed API crashes `@typescript-eslint/type-utils` on load. The jest eslint plugin then fails to register and the build dies with a misleading `Environment key "jest/globals" is unknown`. The override pins it to `^4.9.5`. Don't remove it, and if that error ever reappears, check the resolved typescript version first.
 - **Commit the lockfiles.** `frontend_react/package-lock.json` and `backend_sanity/package-lock.json` are tracked on purpose — Netlify installs from a fresh clone, so an untracked lockfile means every deploy re-resolves the whole tree and inherits upstream breakage like the typescript issue above.
-- Styling uses dart-sass (`sass`), which has no native binding and works on current Node. Don't reintroduce `node-sass` — it caps out around Node 17. No SCSS in this project uses `@import` or legacy `/` division, so it's clean against dart-sass deprecations.
-- Verify a real build with `cd frontend_react && CI=true npm run build`. `CI=true` promotes eslint warnings to errors, which is what Netlify does — a build that passes locally without it can still fail on deploy.
+- **`sass` is pinned to `~1.99.0` and `vite` to `^5` deliberately** — both are the newest releases that still support Node 18. `sass@1.103+` declares `engines: node >=20.19`, and Vite 7+ requires Node 20.19 too. Don't widen either range without moving Node first.
+- Styling uses dart-sass. Don't reintroduce `node-sass` — it caps out around Node 17. No SCSS here uses `@import` or legacy `/` division, so it's clean against dart-sass deprecations.
+- Env vars reach the browser through `import.meta.env`, **not** `process.env` — Vite does not shim the latter. `vite.config.js` sets `envPrefix: ["VITE_", "REACT_APP_"]` so the pre-existing `REACT_APP_*` names still work and no Netlify changes were needed. Inside `netlify/functions/` it is still real Node, so `process.env` is correct there.
 - `backend_sanity` uses **npm**, but a stale `yarn.lock` also sits there. Don't install with yarn; the two managers resolve this v2 dependency tree differently.
 - `frontend_react/build/` is git-ignored build output that's present on disk. Don't read it to understand current source.
-- **Node is pinned to 18** by `.nvmrc` and `netlify.toml`. Node 18 is past EOL, but it's the version this stack is verified on; moving up means re-verifying react-scripts 5 and the typescript override together, not just bumping the pin.
+- **Node is pinned to 18** by `.nvmrc` and `netlify.toml`, and it is now the main thing holding the stack back: it caps Vite at 5 and sass at 1.99. Moving to Node 20.19+ would allow Vite 7+, which clears the remaining dev-server advisories. That upgrade needs verifying on the new Node, not just a changed pin.
+- The 4 remaining `npm audit` findings are `vite` (dev-server only, mostly Windows-specific) and `react-tooltip` → `uuid` (needs a `buf` argument that react-tooltip never passes). Neither reaches the deployed site. Don't run `npm audit fix --force`; it would pull Vite 8, which Node 18 cannot run.

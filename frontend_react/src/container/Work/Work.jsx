@@ -1,7 +1,7 @@
 import './Work.scss';
 
 import { motion } from 'framer-motion';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AiFillEye, AiFillGithub } from 'react-icons/ai';
 
 import { client, urlFor } from '../../client';
