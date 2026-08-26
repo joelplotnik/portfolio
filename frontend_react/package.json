@@ -2,6 +2,9 @@
   "name": "frontend_react",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.19"
+  },
   "dependencies": {
     "@sanity/client": "^3.3.2",
     "@sanity/image-url": "^1.0.1",
@@ -12,6 +15,9 @@
     "react-tooltip": "^4.2.21"
   },
   "scripts": {
+    "prestart": "node scripts/require-node.mjs",
+    "predev": "node scripts/require-node.mjs",
+    "prebuild": "node scripts/require-node.mjs",
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
