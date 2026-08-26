@@ -12,15 +12,10 @@ export default defineConfig({
   // would mean re-entering them in the Netlify dashboard for no benefit;
   // VITE_* still works for anything added later.
   envPrefix: ['VITE_', 'REACT_APP_'],
-  css: {
-    preprocessorOptions: {
-      scss: {
-        // Vite 5 still defaults to sass's legacy renderSync API, which warns on
-        // every file. dart-sass 1.99 supports the modern compiler API.
-        api: 'modern-compiler',
-      },
-    },
-  },
+  // No css.preprocessorOptions needed: Vite 8 uses dart-sass's modern compiler
+  // API by default. On Vite 5 this required an explicit
+  // `css.preprocessorOptions.scss.api = 'modern-compiler'` to silence the
+  // legacy-js-api deprecation warning.
   server: {
     port: 3000,
   },

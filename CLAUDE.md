@@ -7,8 +7,8 @@ Personal portfolio site: single-page React frontend that reads its content from 
 ```
 Portfolio/
 ├── netlify.toml          # deploy config (base = frontend_react)
-├── .nvmrc                # Node 18
-├── frontend_react/       # Vite 5 + React 18 — the actual site
+├── .nvmrc                # Node 22
+├── frontend_react/       # Vite 8 + React 18 — the actual site
 └── backend_sanity/       # Sanity Studio v2 — content schemas + admin UI
 ```
 
@@ -148,10 +148,10 @@ The Sanity Studio is **not** deployed by Netlify; it publishes separately with `
 ## Gotchas
 
 - **Commit the lockfiles.** `frontend_react/package-lock.json` and `backend_sanity/package-lock.json` are tracked on purpose — Netlify installs from a fresh clone, so an untracked lockfile means every deploy re-resolves the whole tree and inherits upstream breakage like the typescript issue above.
-- **`sass` is pinned to `~1.99.0` and `vite` to `^5` deliberately** — both are the newest releases that still support Node 18. `sass@1.103+` declares `engines: node >=20.19`, and Vite 7+ requires Node 20.19 too. Don't widen either range without moving Node first.
 - Styling uses dart-sass. Don't reintroduce `node-sass` — it caps out around Node 17. No SCSS here uses `@import` or legacy `/` division, so it's clean against dart-sass deprecations.
 - Env vars reach the browser through `import.meta.env`, **not** `process.env` — Vite does not shim the latter. `vite.config.js` sets `envPrefix: ["VITE_", "REACT_APP_"]` so the pre-existing `REACT_APP_*` names still work and no Netlify changes were needed. Inside `netlify/functions/` it is still real Node, so `process.env` is correct there.
 - `backend_sanity` uses **npm**, but a stale `yarn.lock` also sits there. Don't install with yarn; the two managers resolve this v2 dependency tree differently.
 - `frontend_react/build/` is git-ignored build output that's present on disk. Don't read it to understand current source.
-- **Node is pinned to 18** by `.nvmrc` and `netlify.toml`, and it is now the main thing holding the stack back: it caps Vite at 5 and sass at 1.99. Moving to Node 20.19+ would allow Vite 7+, which clears the remaining dev-server advisories. That upgrade needs verifying on the new Node, not just a changed pin.
-- The 4 remaining `npm audit` findings are `vite` (dev-server only, mostly Windows-specific) and `react-tooltip` → `uuid` (needs a `buf` argument that react-tooltip never passes). Neither reaches the deployed site. Don't run `npm audit fix --force`; it would pull Vite 8, which Node 18 cannot run.
+- **Node is pinned to 22** by `.nvmrc` and `netlify.toml`; keep the two in sync. Vite 8 and sass 1.103 both require `>=20.19`, so dropping back to 18 breaks the install.
+- The 2 remaining `npm audit` findings are both `react-tooltip` → `uuid`, which needs a `buf` argument react-tooltip never passes. Not reachable, and clearing it means rewriting the Skills tooltips across two major versions.
+- `vite.config.mjs` is `.mjs` on purpose. `"type": "module"` in package.json would fix Vite's CJS warning too, but would also make Node treat the CommonJS Netlify function as ESM and crash it.

@@ -10,9 +10,8 @@
   publish = "build"
 
 [build.environment]
-  # Vite 5 and sass ~1.99 are pinned to the newest releases supporting Node 18.
-  # Raising this to 20.19+ would allow Vite 7+, but needs verifying first.
-  NODE_VERSION = "18"
+  # Kept in sync with .nvmrc. Vite 8 and sass 1.103 both require >=20.19.
+  NODE_VERSION = "22"
 
 [functions]
   # Resolved relative to `base`, i.e. frontend_react/netlify/functions.
