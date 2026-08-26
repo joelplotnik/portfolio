@@ -1,4 +1,3 @@
-
 import { sections } from '../constants';
 
 const NavigationDots = ({ active }) => {

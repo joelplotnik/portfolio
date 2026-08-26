@@ -5,6 +5,8 @@
 const sections = ['home', 'about', 'work', 'skills', 'testimonials', 'contact'];
 
 // The navbar omits testimonials; it stays reachable via the navigation dots.
-export const navLinks = sections.filter((section) => section !== 'testimonials');
+export const navLinks = sections.filter(
+  (section) => section !== 'testimonials',
+);
 
 export default sections;
