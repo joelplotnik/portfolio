@@ -133,7 +133,9 @@ node scripts/rename-testimonial-imgurl.js                    # preview
 SANITY_TOKEN=<token> node scripts/rename-testimonial-imgurl.js --apply
 ```
 
-The token needs Editor permission and is the same one the contact-form function uses. Two gotchas the existing scripts already account for: GROQ projects absent fields as explicit `null` rather than `undefined`, so test truthiness rather than `!== undefined`; and the API version in the URL needs its `v` prefix (`v2022-02-01`) or every request 404s.
+The token needs Editor permission and is the same one the contact-form function uses.
+
+**Migrations that rename a field must be sequenced against deploys.** Renaming `imgurl` before the site read `imgUrl` briefly broke the live testimonial images. The safe order is: ship code that reads both, deploy, migrate the data, then remove the fallback with a follow-up script. `remove-legacy-imgurl-field.js` is the pending final step — it refuses to run on any document that would lose its only image reference. Two gotchas the existing scripts already account for: GROQ projects absent fields as explicit `null` rather than `undefined`, so test truthiness rather than `!== undefined`; and the API version in the URL needs its `v` prefix (`v2022-02-01`) or every request 404s.
 
 ## Deployment
 
