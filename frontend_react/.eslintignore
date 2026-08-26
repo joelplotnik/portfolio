@@ -1,0 +1,3 @@
+# Compiled output — linting the minified bundle produces hundreds of
+# meaningless errors and hides real ones in src/.
+build/

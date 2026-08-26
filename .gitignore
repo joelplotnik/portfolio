@@ -24,7 +24,11 @@ logs/
 *.log
 
 # Editor directories and files
-.vscode/
+# Ignore .vscode contents but keep settings.json: it carries the ESLint
+# working-directory config both apps need. Note this must be `.vscode/*`, not
+# `.vscode/` — git cannot re-include a file whose parent directory is excluded.
+.vscode/*
+!.vscode/settings.json
 .idea/
 *.iml
 
