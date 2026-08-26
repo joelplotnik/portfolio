@@ -42,6 +42,8 @@ SANITY_TOKEN=<sanity token with write access>   # server-side only
 
 The browser client in [client.js](frontend_react/src/client.js) is unauthenticated: the production dataset allows public reads, so no token is needed for content. The only write is the contact form, which goes through the function below.
 
+`client.js` exports `isConfigured` and degrades rather than throwing when `REACT_APP_SANITY_PROJECT_ID` is missing — `@sanity/client` throws on construction, and at module scope that blanked the entire site. Keep the client construction inside that guard; don't "simplify" it back to an unconditional call.
+
 ## Frontend architecture
 
 Entry: [index.js](frontend_react/src/index.js) → [App.js](frontend_react/src/App.js), which renders six sections in fixed order: `Navbar, Header, About, Work, Skills, Testimonials, Footer`. There is no router; navigation is anchor links to section IDs.
@@ -93,7 +95,7 @@ Schemas in [backend_sanity/schemas/](backend_sanity/schemas/); a new schema file
 | `work` | title, description, projectLink, codeLink, imgUrl, tags[] |
 | `skills` | name, bgColor (hex string used as inline style), icon |
 | `experiences` | year, works[] of `workExperience`; hidden `order` number field drives sorting |
-| `workExperience` | name, company, desc — declared `document` but used inline inside `experiences` |
+| `workExperience` | name, company, desc — an `object`, embedded only inside `experiences.works` |
 | `testimonials` | name, company, **`imgurl`** (lowercase — inconsistent with the rest), feedback |
 | `brands` | imgUrl, name |
 | `contact` | name, email, message — **written by the site**, not authored in the studio |
