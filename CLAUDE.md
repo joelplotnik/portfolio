@@ -25,9 +25,13 @@ cd frontend_react && npm run preview    # serve the production build locally
 cd frontend_react && npm run lint
 
 # Sanity Studio (http://localhost:3333)
-cd backend_sanity && sanity start
-cd backend_sanity && sanity deploy      # publishes the hosted studio
+cd backend_sanity && npm install
+cd backend_sanity && npm run dev        # `sanity dev` — v2's `sanity start` is gone
+cd backend_sanity && npm run build      # → backend_sanity/dist/
+cd backend_sanity && npm run deploy     # publishes the hosted studio
 ```
+
+**Always go through the npm scripts, never a bare `sanity`.** The scripts resolve the CLI from `node_modules`; a globally installed `sanity` shadows it and fails in misleading ways — a stale v2 global, and a v6 global installed under the wrong Node version, both did exactly that during the migration.
 
 There is no test suite. **`npm run build` does not lint** — Vite and ESLint are separate, unlike CRA where linting ran inside the build. Run `npm run lint` yourself before pushing, or chain it into `build` if you want deploys to fail on lint errors.
 
