@@ -57,19 +57,24 @@ Entry: [index.js](frontend_react/src/index.js) → [App.js](frontend_react/src/A
 **Two HOC wrappers** in [src/wrapper/](frontend_react/src/wrapper/) compose every section. Sections export the wrapped version as default:
 
 ```js
-export default AppWrap(MotionWrap(About, 'app__about'), 'about', 'app__whitebg');
-//                     ^ framer-motion scroll-in    ^ id + social/nav rails + copyright
+export default AppWrap(MotionWrap(About, 'app__about'), 'about', 'app__band-b');
+//                     ^ framer-motion scroll-in    ^ id + social/nav rails + band
 ```
 
-- `AppWrap(Component, idName, classNames)` — supplies the section `id` (the anchor target), the left `SocialMedia` rail, the right `NavigationDots` rail, and the copyright block.
-- `MotionWrap(Component, classNames)` — the scroll-into-view fade/rise animation.
+- `AppWrap(Component, idName, classNames)` — renders the `<section>` with its `id` (the anchor target), the left `SocialMedia` rail, and the right `NavigationDots` rail, as a three-column grid. The rails collapse below 900px. The third argument is the background band, `app__band-a` (base) or `app__band-b` (raised, hairline top and bottom); it defaults to `app__band-a`, which is what `Header` gets.
+- The copyright block renders **only** when `idName === 'contact'`. It used to render in all six sections and be hidden with CSS in the hero.
+- `MotionWrap(Component, classNames)` — the scroll-into-view fade/rise, `once: true`, and it opts out via `useReducedMotion`.
 - `Header` uses `AppWrap` only (no `MotionWrap`); it animates internally.
 
 **Section IDs don't all match component names.** `Footer` is registered as `contact`, not `footer`.
 
 Anchor lists come from one place: [constants/sections.js](frontend_react/src/constants/sections.js). `sections` is the full ordered list (used by `NavigationDots`); `navLinks` is the same list minus `testimonials` (used by `Navbar`, both the desktop and mobile menus). Adding or renaming a section means editing that file, the `AppWrap` id on the component, and the render order in [App.js](frontend_react/src/App.js) — nothing else.
 
-**Barrel files** re-export everything; a new component/container/wrapper is invisible until added to its `index.js` ([container](frontend_react/src/container/index.js), [components](frontend_react/src/components/index.js), [wrapper](frontend_react/src/wrapper/index.js)).
+**Barrel files** re-export everything; a new component/container/wrapper is invisible until added to its `index.js` ([container](frontend_react/src/container/index.js), [components](frontend_react/src/components/index.js), [wrapper](frontend_react/src/wrapper/index.js)). [src/hooks/](frontend_react/src/hooks/) has no barrel — import from it directly.
+
+The social links are data, in [constants/social.js](frontend_react/src/constants/social.js) (`label`, `href`, and an `Icon` component reference). Both the desktop rail and the contact section map over it, so a link is added in one place.
+
+The fixed navbar marks the current section with [useActiveSection](frontend_react/src/hooks/useActiveSection.js), an IntersectionObserver with a `-45%` top and bottom `rootMargin` so exactly one section is intersecting. The dot rail does **not** use it: `AppWrap` renders one rail per section and passes its own id as `active`.
 
 **Sanity access** is via [client.js](frontend_react/src/client.js), exporting `client` (GROQ queries) and `urlFor(source)` (image URL builder — required for any Sanity image field; raw `imgUrl` objects won't render in `<img src>`).
 
@@ -77,17 +82,37 @@ Anchor lists come from one place: [constants/sections.js](frontend_react/src/con
 
 Running `npm start` alone leaves that endpoint 404ing. To exercise the form locally use `npx netlify dev`, which serves the function alongside the dev server and loads `.env`.
 
-**Data-fetching pattern** — every content section does the same thing: `useState` + `useEffect`, GROQ query, `.then` sets state and clears `isLoading`, `.catch` logs and clears `isLoading`, and the JSX renders a `Loading...` block while pending. Match this shape when adding a section rather than introducing a data library.
+**Data-fetching pattern** — every content section does the same thing: `useState` + `useEffect`, GROQ query, `.then` sets state and clears `isLoading`, `.catch` logs and clears `isLoading`, and the JSX renders a `<p className="app__state">Loading…</p>` while pending. Match this shape when adding a section rather than introducing a data library.
+
+**Derive, don't mirror.** `Work` keeps only the fetched list and the active filter in state and computes the filtered list with `useMemo`. It used to copy the list into a second state behind a `setTimeout(…, 500)` to time an animation, which made every filter click do nothing for half a second. Filter transitions are handled by remounting the grid on `key={activeFilter}` instead.
 
 ## Styling
 
 SCSS via `sass` (dart-sass), one `.scss` file colocated per component and imported by it. No CSS modules — class names are global and namespaced by hand with the `app__` / BEM-ish convention (`app__work-item`, `app__skills-exp-year`).
 
-- Design tokens are CSS custom properties in [index.css](frontend_react/src/index.css) (`--primary-color`, `--secondary-color: #4bbb7d` is the green accent, `--font-base`). Use the variables, not raw hex.
-- Shared utility classes live in [App.scss](frontend_react/src/App.scss): `app__flex`, `app__container`, `app__wrapper`, `head-text`, `p-text`, `bold-text`, `app__whitebg` / `app__primarybg`, `sr-only`.
-- Responsive breakpoints used throughout: `min-width: 2000px` (scale up for large displays), `max-width: 900px`, `max-width: 450px`, and `max-width: 500px` (hides the social/nav rails).
+**The theme is dark, and it is the only theme.** There is no light mode and no toggle. All of it is tokenised in [index.css](frontend_react/src/index.css) — **never hardcode a hex value in component SCSS**:
 
-Local static images are imported and re-exported through [constants/images.js](frontend_react/src/constants/images.js) as one `images` object — add both the `import` and the key in the exported object.
+| Group | Tokens |
+|---|---|
+| Surfaces | `--bg` `--bg-elev` `--surface` `--surface-2` |
+| Lines | `--border` `--border-strong` |
+| Text | `--text-primary` `--text-muted` `--text-subtle` |
+| Accent | `--accent` (`#ff5e57`, the Tweakster red) `--accent-hover` `--accent-soft` `--accent-contrast`, plus `--danger` |
+| Shape | `--radius-sm` `--radius-md` `--radius-lg` (4/8/14px) |
+| Motion | `--ease` `--dur-1` `--dur-2` |
+| Type | `--font-base` (Inter) `--font-mono` (system stack) and the `--step--2` … `--step-5` scale |
+| Layout | `--max-width` (1200px) `--nav-height` |
+
+Type sizes are `clamp()`, so a size is set once and scales with the viewport — that is why almost no `min-width: 2000px` font-size overrides remain. Reach for `--step-*` before writing a `font-size` in `rem`.
+
+Nothing is a circle or a pill: radii are 4/8/14px, and the only remaining `border-radius: 50%` is on nothing at all. Small metadata (section eyebrows, tags, years, filters, form labels) is set in `--font-mono`, uppercase, with positive letter-spacing.
+
+- Shared utility classes live in [App.scss](frontend_react/src/App.scss): `app__container`, `app__wrapper`, `app__band-a` / `app__band-b`, `head-text`, `p-text`, `bold-text`, `mono-text`, `app__section-head`, `app__section-eyebrow`, `btn` + `btn--primary` / `btn--ghost`, `chip`, `app__state`, `sr-only`. (`app__flex` is gone — it was a centering helper the grid layouts no longer need.)
+- Responsive breakpoints: `max-width: 1100px` (About drops to 2 columns), `max-width: 900px` (the main desktop→stacked switch; hides both rails and shows the navbar's menu button), `max-width: 560px` (About drops to 1 column), and `max-width: 450px` (tightened padding). Sections are **not** `min-height: 100vh` any more — only the hero is; the rest are sized by their padding, which is what removed the acres of dead vertical space.
+
+Local static images are imported and re-exported through [constants/images.js](frontend_react/src/constants/images.js) as one `images` object — add both the `import` and the key in the exported object. The barrel imports unconditionally, so anything listed there ships in the bundle whether or not a component uses it; `circle.svg` and `logo.png` were removed from it when the overlay circle and the image logo went away (the navbar wordmark is text now, and `public/jp_logo.png` is still the favicon). `email.png` and `mobile.png` are still listed but unused — they belong to the contact cards that were deleted earlier.
+
+The section headings all use the same pattern: an `app__section-head` wrapper containing an `app__section-eyebrow` (mono, accent, with a leading rule) and an `h2.head-text`, where a `<span>` inside the heading paints the accent colour.
 
 ## Sanity backend
 
@@ -116,9 +141,11 @@ Validate changes with `npx sanity schema validate`; it catches bad type referenc
 ### Known data traps
 
 - `testimonials.imgUrl` was spelled `imgurl` until it was renamed. [Testimonials.jsx](frontend_react/src/container/Testimonials/Testimonials.jsx) still reads `test.imgUrl ?? test.imgurl`; that fallback exists only until `backend_sanity/scripts/rename-testimonial-imgurl.js` has been applied everywhere, then it can go.
-- Work filter buttons are derived from the tags present in the fetched documents, so a new tag in Sanity appears automatically and no filter can render that matches nothing. Note that `All` is the reset sentinel *and* exists as a literal tag on at least one document — [Work.jsx](frontend_react/src/container/Work/Work.jsx) deletes it from the derived set to avoid rendering it twice. Don't remove that line without also cleaning up the CMS.
+- Work filter buttons are derived from the tags present in the fetched documents, so a new tag in Sanity appears automatically and no filter can render that matches nothing. Note that `All` is the reset sentinel *and* exists as a literal tag on at least one document — [Work.jsx](frontend_react/src/container/Work/Work.jsx) deletes it from the derived set to avoid rendering it twice, **and** filters it out of the per-card tag chips via `visibleTags()`. Both are needed: the cards render every tag now, not just `tags[0]`. Don't remove either without also cleaning up the CMS.
 - `work` has no `name` field — it's `title`. Don't reintroduce `work.name`; it silently yields `undefined`.
 - `Testimonials` and `Skills` fetch two document types with `Promise.all`; keep that shape if you add a third.
+- `skills.bgColor` is a light pastel hex authored for the old white theme. It is **not** applied directly any more — [Skills.jsx](frontend_react/src/container/Skills/Skills.jsx) passes it down as a `--skill-tint` custom property and the SCSS mixes it into the dark surface with `color-mix()`. The field is untouched in Sanity; don't "fix" it there.
+- `experiences.works[].desc` renders inline under each role. It used to be a hover-only `react-tooltip`, which put it out of reach on touch devices — that dependency is gone, so don't reintroduce a tooltip for it.
 
 ## Conventions
 
@@ -163,5 +190,6 @@ The Sanity Studio is **not** deployed by Netlify; it publishes separately with `
 - `frontend_react/build/` is git-ignored build output that's present on disk. Don't read it to understand current source.
 - **Node is pinned to 22** by `.nvmrc` and `netlify.toml`; keep the two in sync. Vite 8 and sass 1.103 both require `>=20.19`. `frontend_react` declares `engines.node` and runs `scripts/require-node.mjs` before `dev`/`start`/`build`, so an old Node fails with a readable message instead of a `styleText` SyntaxError from inside rolldown.
 - **Never run `npm install`/`npm ci` for the frontend on Node 18.** Its npm 8 has an optional-dependency bug (npm/cli#4828) that silently skips rolldown's platform binary, and the build then dies with "Cannot find native binding". The lockfile is fine when this happens — `rm -rf node_modules && npm ci` on Node 22 fixes it.
-- The 2 remaining `npm audit` findings are both `react-tooltip` → `uuid`, which needs a `buf` argument react-tooltip never passes. Not reachable, and clearing it means rewriting the Skills tooltips across two major versions.
+- `npm audit` is clean. The two long-standing findings were `react-tooltip` → `uuid`; the redesign dropped `react-tooltip` (the Skills descriptions render inline now), which removed them.
+- The mobile navigation sheet is rendered as a **sibling** of `<header class="app__navbar">`, not inside it. The header has `backdrop-filter`, and a filtered ancestor becomes the containing block for `position: fixed` descendants — nested, the sheet was clipped to the 68px height of the bar and appeared to have no background. Same trap applies to anything else fixed that gets moved into the header.
 - `vite.config.mjs` is `.mjs` on purpose. `"type": "module"` in package.json would fix Vite's CJS warning too, but would also make Node treat the CommonJS Netlify function as ESM and crash it.

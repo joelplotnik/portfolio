@@ -1,19 +1,18 @@
 import './Work.scss';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
-import { AiFillEye, AiFillGithub } from 'react-icons/ai';
+import { HiArrowUpRight } from 'react-icons/hi2';
+import { FiGithub } from 'react-icons/fi';
 
 import { client, urlFor } from '../../client';
 import { AppWrap, MotionWrap } from '../../wrapper';
 
 export const Work = () => {
   const [activeFilter, setActiveFilter] = useState('All');
-  const [animateCard, setAnimateCard] = useState({ y: 0, opacity: 1 });
   const [work, setWork] = useState([]);
-  const [filterWork, setFilterWork] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const query = '*[_type == "work"]';
@@ -21,7 +20,6 @@ export const Work = () => {
       .fetch(query)
       .then((data) => {
         setWork(data);
-        setFilterWork(data);
         setIsLoading(false);
       })
       .catch((err) => {
@@ -36,104 +34,112 @@ export const Work = () => {
   const filters = useMemo(() => {
     const tags = new Set();
     work.forEach((item) => item.tags?.forEach((tag) => tags.add(tag)));
-    // 'All' is the reset sentinel appended below. At least one document in the
-    // CMS also carries it as a literal tag, so drop it here or it renders twice
-    // and collides as a duplicate React key.
+    // 'All' is the reset sentinel prepended below. At least one document in
+    // the CMS also carries it as a literal tag, so drop it here or it renders
+    // twice and collides as a duplicate React key.
     tags.delete('All');
-    return [...Array.from(tags).sort(), 'All'];
+    return ['All', ...Array.from(tags).sort()];
   }, [work]);
 
-  const handleWorkFilter = (item) => {
-    setActiveFilter(item);
-    setAnimateCard([{ y: 100, opacity: 0 }]);
+  // Filtering is derived rather than stored. The previous version copied the
+  // list into state behind a 500ms setTimeout, so a filter click did nothing
+  // at all for half a second.
+  // 'All' exists as a literal tag on at least one document (it is the reset
+  // sentinel too). The old card showed only tags[0] so it stayed hidden;
+  // now that every tag renders, it has to be dropped here as well.
+  const visibleTags = (tags) => tags?.filter((tag) => tag !== 'All') ?? [];
 
-    setTimeout(() => {
-      setAnimateCard([{ y: 0, opacity: 1 }]);
-
-      if (item === 'All') {
-        setFilterWork(work);
-      } else {
-        setFilterWork(work.filter((work) => work.tags?.includes(item)));
-      }
-    }, 500);
-  };
+  const filteredWork = useMemo(
+    () =>
+      activeFilter === 'All'
+        ? work
+        : work.filter((item) => item.tags?.includes(activeFilter)),
+    [work, activeFilter],
+  );
 
   return (
     <>
-      <h2 className="head-text">
-        My <span>Portfolio</span>
-      </h2>
-      <div className="app__work-filter">
+      <div className="app__section-head">
+        <p className="app__section-eyebrow">Work</p>
+        <h2 className="head-text">
+          My <span>Portfolio</span>
+        </h2>
+      </div>
+
+      <div className="app__work-filter" role="group" aria-label="Filter work">
         {filters.map((item) => (
-          <div
+          <button
+            type="button"
             key={item}
-            onClick={() => handleWorkFilter(item)}
-            className={`app__work-filter-item app__flex p-text ${
+            onClick={() => setActiveFilter(item)}
+            className={`app__work-filter-item ${
               activeFilter === item ? 'item-active' : ''
             }`}
+            aria-pressed={activeFilter === item}
           >
             {item}
-          </div>
+          </button>
         ))}
       </div>
+
       {isLoading ? (
-        <div className="app__flex" style={{ minHeight: 200 }}>
-          <p className="p-text">Loading...</p>
-        </div>
+        <p className="app__state">Loading…</p>
       ) : (
         <motion.div
-          animate={animateCard}
-          transition={{ duration: 0.5, delayChildren: 0.5 }}
+          key={activeFilter}
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
           className="app__work-portfolio"
         >
-          {filterWork.map((work) => (
-            <div className="app__work-item app__flex" key={work._id}>
-              <div className="app__work-img app__flex">
-                <img src={urlFor(work.imgUrl)} alt={work.title} />
-                <motion.div
-                  whileHover={{ opacity: [0, 1] }}
-                  whileTap={{ opacity: [0, 1] }}
-                  transition={{
-                    duration: 0.25,
-                    ease: 'easeInOut',
-                    staggerChildren: 0.5,
-                  }}
-                  className="app__work-hover app__flex"
-                >
-                  <a href={work.projectLink} target="_blank" rel="noreferrer">
-                    <motion.div
-                      whileInView={{ scale: [0, 1] }}
-                      whileHover={{ scale: [1, 0.9] }}
-                      transition={{ duration: 0.25 }}
-                      className="app__flex"
-                    >
-                      <AiFillEye />
-                    </motion.div>
-                  </a>
-                  <a href={work.codeLink} target="_blank" rel="noreferrer">
-                    <motion.div
-                      whileInView={{ scale: [0, 1] }}
-                      whileHover={{ scale: [1, 0.9] }}
-                      transition={{ duration: 0.25 }}
-                      className="app__flex"
-                    >
-                      <AiFillGithub />
-                    </motion.div>
-                  </a>
-                </motion.div>
+          {filteredWork.map((item) => (
+            <article className="app__work-item" key={item._id}>
+              <div className="app__work-img">
+                <img src={urlFor(item.imgUrl)} alt={item.title} />
               </div>
-              <div className="app__work-content app__flex">
-                <h4 className="bold-text">{work.title}</h4>
-                <p className="p-text" style={{ marginTop: 10 }}>
-                  {work.description}
-                </p>
-                {work.tags?.[0] && (
-                  <div className="app__work-tag app__flex">
-                    <p className="p-text">{work.tags[0]}</p>
-                  </div>
+
+              <div className="app__work-content">
+                <h3 className="bold-text">{item.title}</h3>
+                <p className="p-text">{item.description}</p>
+
+                {visibleTags(item.tags).length > 0 && (
+                  <ul className="app__work-tags">
+                    {visibleTags(item.tags).map((tag) => (
+                      <li className="chip" key={tag}>
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
                 )}
+
+                {/* Text links, not a hover-only icon overlay: the old one was
+                    unreachable by keyboard and unlabelled on touch. */}
+                <div className="app__work-links">
+                  {item.projectLink && (
+                    <a
+                      href={item.projectLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Visit ${item.title}, opens in a new tab`}
+                    >
+                      Live site
+                      <HiArrowUpRight aria-hidden="true" />
+                    </a>
+                  )}
+                  {item.codeLink && (
+                    <a
+                      href={item.codeLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Source code for ${item.title}, opens in a new tab`}
+                    >
+                      Source
+                      <FiGithub aria-hidden="true" />
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
+            </article>
           ))}
         </motion.div>
       )}
@@ -141,4 +147,4 @@ export const Work = () => {
   );
 };
 
-export default AppWrap(MotionWrap(Work, 'app__work'), 'work', 'app__primarybg');
+export default AppWrap(MotionWrap(Work, 'app__work'), 'work', 'app__band-a');

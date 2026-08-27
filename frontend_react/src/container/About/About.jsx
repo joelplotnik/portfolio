@@ -1,6 +1,5 @@
 import './About.scss';
 
-import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 import { client, urlFor } from '../../client';
@@ -26,32 +25,26 @@ const About = () => {
 
   return (
     <>
-      <h2 className="head-text">
-        Combining <span>Artistry</span> <br /> With <span>Engineering</span>
-      </h2>
+      <div className="app__section-head">
+        <p className="app__section-eyebrow">About</p>
+        <h2 className="head-text">
+          Combining <span>Artistry</span> with <span>Engineering</span>
+        </h2>
+      </div>
 
       {isLoading ? (
-        <div className="app__flex" style={{ minHeight: 200 }}>
-          <p className="p-text">Loading...</p>
-        </div>
+        <p className="app__state">Loading…</p>
       ) : (
         <div className="app__profiles">
-          {about.map((about, index) => (
-            <motion.div
-              whileInView={{ opacity: 1 }}
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.5, type: 'tween' }}
-              className="app__profile-item"
-              key={about.title + index}
-            >
-              <img src={urlFor(about.imgUrl)} alt={about.title} />
-              <h2 className="bold-text" style={{ marginTop: 20 }}>
-                {about.title}
-              </h2>
-              <p className="p-text" style={{ marginTop: 10 }}>
-                {about.description}
-              </p>
-            </motion.div>
+          {about.map((profile, index) => (
+            <article className="app__profile-item" key={profile.title + index}>
+              <div className="app__profile-media">
+                <img src={urlFor(profile.imgUrl)} alt={profile.title} />
+              </div>
+              <p className="mono-text">{String(index + 1).padStart(2, '0')}</p>
+              <h3 className="bold-text">{profile.title}</h3>
+              <p className="p-text">{profile.description}</p>
+            </article>
           ))}
         </div>
       )}
@@ -59,8 +52,4 @@ const About = () => {
   );
 };
 
-export default AppWrap(
-  MotionWrap(About, 'app__about'),
-  'about',
-  'app__whitebg',
-);
+export default AppWrap(MotionWrap(About, 'app__about'), 'about', 'app__band-b');

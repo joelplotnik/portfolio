@@ -1,187 +1,183 @@
 #home {
   position: relative;
-  background: url('../../assets/bgIMG.png');
-  background-size: cover;
-  background-repeat: repeat;
-  background-position: center;
+  overflow: hidden;
+
+  /* Replaces the dotted bgIMG.png: a single soft accent wash, so the hero
+     reads as depth rather than as a texture tile. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 70vw;
+    height: 90vh;
+    background: radial-gradient(
+      closest-side,
+      var(--accent-soft),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
 
   .app__wrapper {
-    padding: 0;
+    position: relative;
+    padding-top: calc(var(--nav-height) + 5rem);
+    padding-bottom: 6rem;
+    min-height: 100svh;
+    justify-content: center;
 
-    .copyright {
-      display: none;
+    @media screen and (max-width: 900px) {
+      padding-top: calc(var(--nav-height) + 3rem);
+      padding-bottom: 4rem;
+      min-height: 0;
     }
   }
 }
 
 .app__header {
-  flex: 1;
   width: 100%;
-  height: 100%;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: center;
+  gap: 4rem;
 
-  padding: 6rem 2rem 0;
-
-  @media screen and (min-width: 2000px) {
-    padding-top: 8rem;
-  }
-
-  @media screen and (max-width: 1200px) {
-    flex-direction: column;
-  }
-
-  @media screen and (max-width: 400px) {
-    padding: 6rem 1rem 2rem;
+  @media screen and (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
   }
 }
 
 .app__header-info {
-  flex: 0.65;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   align-items: flex-start;
-  height: 100%;
-
-  @media screen and (max-width: 2000px) {
-    width: 100%;
-    margin-right: 0rem;
-  }
+  gap: 1.25rem;
 }
 
-.app__header-badge {
-  width: 100%;
+.app__header-name {
+  font-size: var(--step-5);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  color: var(--text-primary);
+}
+
+.app__header-role {
+  font-size: var(--step-2);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+
+  /* The one accent rule on the page's largest type block. */
+  padding-left: 1rem;
+  border-left: 2px solid var(--accent);
+}
+
+.app__header-actions {
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.app__header-stack {
+  margin-top: 2.5rem;
+  display: flex;
   flex-direction: column;
+  gap: 0.85rem;
 
-  .badge-cmp,
-  .tag-cmp {
-    padding: 1rem 2rem;
-    border: var(--white-color);
-    border-radius: 15px;
-    flex-direction: row;
-    width: auto;
-
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
-  .tag-cmp {
-    flex-direction: column;
-    margin-top: 3rem;
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
 
-    p {
-      width: 100%;
-      text-transform: uppercase;
-      text-align: right;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--surface);
+
+    transition:
+      border-color var(--dur-1) var(--ease),
+      background-color var(--dur-1) var(--ease);
+
+    &:hover {
+      border-color: var(--border-strong);
+      background-color: var(--surface-2);
     }
+  }
+
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
   }
 
   span {
-    font-size: 2.5rem;
-
-    @media screen and (min-width: 2000px) {
-      font-size: 5rem;
-    }
-  }
-
-  @media screen and (max-width: 1200px) {
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-}
-
-.app__header-circles {
-  flex: 0.75;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: flex-start;
-  height: 100%;
-  margin-left: 1rem;
-
-  div {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: var(--white-color);
-
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-
-    img {
-      width: 60%;
-      height: 60%;
-    }
-  }
-
-  div:nth-child(1) {
-    width: 100px;
-    height: 100px;
-  }
-  div:nth-child(2) {
-    margin: 1.75rem;
-    width: 150px;
-    height: 150px;
-  }
-  div:nth-child(3) {
-    width: 70px;
-    height: 70px;
-  }
-
-  @media screen and (min-width: 2000px) {
-    div:nth-child(1) {
-      width: 400px;
-      height: 400px;
-    }
-    div:nth-child(2) {
-      width: 170px;
-      height: 170px;
-    }
-    div:nth-child(3) {
-      width: 200px;
-      height: 200px;
-    }
-  }
-
-  @media screen and (max-width: 1200px) {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    margin-left: 0;
-
-    div {
-      margin: 1rem;
-    }
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
   }
 }
 
 .app__header-img {
-  flex: 1;
-  height: 100%;
-
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
   position: relative;
 
-  img {
-    width: 100%;
-    object-fit: contain;
-    z-index: 1;
-  }
+  /* Sized from width alone. It used to cap the image at 60vh, which meant a
+     shorter window shrank the portrait inside a panel that kept its full
+     column width — a small figure stranded in a large empty box. The panel
+     now takes its height from the image's own 1255x1708 ratio, so vertical
+     resizing does not touch it. */
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
 
-  .overlay_circle {
+  /* The portrait is a cut-out PNG. On a light theme it sat on a decorative
+     circle; here it sits in a panel that fades into the page instead. */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  /* Same value as the headline on purpose: the panel and "Joel Plotnik"
+     are meant to read as one bright mark. The portrait is a cut-out of a
+     figure in black, so it lands as a silhouette rather than sinking into
+     a dark surface. */
+  background: var(--text-primary);
+  overflow: hidden;
+
+  /* Sits over the cut-out portrait so it fades into the panel instead of
+     ending on a hard crop at the bottom edge. */
+  &::after {
+    content: '';
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 0;
-    width: 100%;
-    height: 90%;
+    /* Short, and weighted to the very bottom: a long even ramp climbed the
+       figure's legs and read as a wash over the photo rather than as an
+       edge treatment. */
+    height: 13%;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--text-primary) 45%, transparent) 65%,
+      var(--text-primary)
+    );
+    pointer-events: none;
   }
 
-  @media screen and (max-width: 1200px) {
-    margin: 2rem 0;
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media screen and (max-width: 900px) {
+    margin: 0 auto;
   }
 }

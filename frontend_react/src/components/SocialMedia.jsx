@@ -1,49 +1,20 @@
-import { BsInstagram } from 'react-icons/bs';
-import { FaGithub, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
+import { socialLinks } from '../constants';
 
 const SocialMedia = () => {
   return (
     <div className="app__social">
-      <div>
+      {socialLinks.map(({ label, href, Icon }) => (
         <a
-          href="https://www.linkedin.com/in/joel-plotnik-881344164/"
+          key={label}
+          href={href}
           target="_blank"
           rel="noreferrer"
-          aria-label="LinkedIn"
+          aria-label={label}
         >
-          <FaLinkedinIn />
+          <Icon aria-hidden="true" />
+          <span className="sr-only">{label}</span>
         </a>
-      </div>
-      <div>
-        <a
-          href="https://github.com/joelplotnik"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="GitHub"
-        >
-          <FaGithub />
-        </a>
-      </div>
-      <div>
-        <a
-          href="https://www.instagram.com/joelplotnik/?hl=en"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Instagram"
-        >
-          <BsInstagram />
-        </a>
-      </div>
-      <div>
-        <a
-          href="https://x.com/joelplotnik"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="X"
-        >
-          <FaXTwitter />
-        </a>
-      </div>
+      ))}
     </div>
   );
 };
