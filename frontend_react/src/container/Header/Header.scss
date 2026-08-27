@@ -143,11 +143,24 @@
      circle; here it sits in a panel that fades into the page instead. */
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  /* Same value as the headline on purpose: the panel and "Joel Plotnik"
-     are meant to read as one bright mark. The portrait is a cut-out of a
-     figure in black, so it lands as a silhouette rather than sinking into
-     a dark surface. */
-  background: var(--text-primary);
+  /* A studio backdrop rather than a flat fill: light at the shoulders,
+     falling off toward the edges, so the black-clad figure keeps its
+     silhouette without the panel becoming a bright slab. */
+  background:
+    /* Centred on the torso, not the head. The figure's shoulders sit near
+       45% of the panel, and that is the one place the backdrop has to stay
+       light enough to keep a black shirt's edge readable; centring this on
+       the head instead left the shoulders at 1.04:1 against the shirt,
+       which is the "floating body" look. */
+    radial-gradient(110% 88% at 50% 46%, var(--surface-photo), transparent 76%),
+    /* Holds a floor through the upper half, then falls to the page colour
+       for the bottom fade to meet. */
+    linear-gradient(
+        180deg,
+        var(--surface-photo-deep) 0%,
+        var(--surface-photo-deep) 52%,
+        var(--bg) 100%
+      );
   overflow: hidden;
 
   /* Sits over the cut-out portrait so it fades into the panel instead of
@@ -165,8 +178,8 @@
     background: linear-gradient(
       180deg,
       transparent,
-      color-mix(in srgb, var(--text-primary) 45%, transparent) 65%,
-      var(--text-primary)
+      color-mix(in srgb, var(--bg) 45%, transparent) 65%,
+      var(--bg)
     );
     pointer-events: none;
   }

@@ -41,6 +41,12 @@
 
   /* The accent is a red, so an error cannot be distinguished by hue alone —
      the form error is drawn as a tinted box with a rule (see Footer.scss). */
+  /* Portrait backdrop. Deliberately lighter than the card surfaces: the
+     subject wears black, so a near-black panel swallows the silhouette,
+     while a near-white one is a bright slab in a dark page. */
+  --surface-photo: #383e49;
+  --surface-photo-deep: #191d23;
+
   --danger: #ff9a9a;
   --danger-soft: rgba(255, 107, 107, 0.12);
   --danger-line: #ff6b6b;
