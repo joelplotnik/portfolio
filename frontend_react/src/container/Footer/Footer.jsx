@@ -2,6 +2,7 @@ import './Footer.scss';
 
 import { useState } from 'react';
 
+import { socialLinks } from '../../constants';
 import { AppWrap, MotionWrap } from '../../wrapper';
 
 export const Footer = () => {
@@ -15,13 +16,16 @@ export const Footer = () => {
   const [error, setError] = useState('');
 
   const { name, email, message } = formData;
+
   const handleChangeInput = (e) => {
-    const { name, value } = e.target;
+    const { name: field, value } = e.target;
     setError('');
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [field]: value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
     if (!name.trim() || !email.trim() || !message.trim()) {
       setError('Please fill in all fields.');
       return;
@@ -63,61 +67,90 @@ export const Footer = () => {
 
   return (
     <>
-      <h2 className="head-text">Chat with me</h2>
-      {!isFormSubmitted ? (
-        <div className="app__footer-form app__flex">
-          <div className="app__flex">
-            <input
-              className="p-text"
-              type="text"
-              placeholder="Your Name"
-              name="name"
-              value={name}
-              onChange={handleChangeInput}
-            ></input>
-          </div>
-          <div className="app__flex">
-            <input
-              className="p-text"
-              type="email"
-              placeholder="Your Email"
-              name="email"
-              value={email}
-              onChange={handleChangeInput}
-            ></input>
-          </div>
-          <div>
-            <textarea
-              className="p-text"
-              placeholder="Your Message"
-              value={message}
-              name="message"
-              onChange={handleChangeInput}
-            />
-          </div>
-          {error && (
-            <p
-              className="p-text"
-              style={{ color: '#e74c3c', marginTop: '0.5rem' }}
-            >
+      <div className="app__section-head">
+        <p className="app__section-eyebrow">Contact</p>
+        <h2 className="head-text">Chat with me</h2>
+      </div>
+
+      <div className="app__footer">
+        {!isFormSubmitted ? (
+          <form className="app__footer-form" onSubmit={handleSubmit} noValidate>
+            <div className="app__footer-field">
+              <label htmlFor="contact-name">Name</label>
+              <input
+                id="contact-name"
+                type="text"
+                name="name"
+                autoComplete="name"
+                value={name}
+                onChange={handleChangeInput}
+              />
+            </div>
+
+            <div className="app__footer-field">
+              <label htmlFor="contact-email">Email</label>
+              <input
+                id="contact-email"
+                type="email"
+                name="email"
+                autoComplete="email"
+                value={email}
+                onChange={handleChangeInput}
+              />
+            </div>
+
+            <div className="app__footer-field">
+              <label htmlFor="contact-message">Message</label>
+              <textarea
+                id="contact-message"
+                name="message"
+                rows={6}
+                value={message}
+                onChange={handleChangeInput}
+              />
+            </div>
+
+            <p className="app__footer-error" role="alert">
               {error}
             </p>
-          )}
-          <button type="button" className="p-text" onClick={handleSubmit}>
-            {loading ? 'Sending' : 'Send Message'}
-          </button>
-        </div>
-      ) : (
-        <div>
-          <h3 className="head-text">Thank you for getting in touch!</h3>
-        </div>
-      )}
+
+            <button
+              type="submit"
+              className="btn btn--primary"
+              disabled={loading}
+            >
+              {loading ? 'Sending…' : 'Send message'}
+            </button>
+          </form>
+        ) : (
+          <div className="app__footer-success" role="status">
+            <h3 className="bold-text">Thank you for getting in touch!</h3>
+            <p className="p-text">I&apos;ll get back to you shortly.</p>
+          </div>
+        )}
+
+        {/* The social rail is hidden below 900px, so these links live here
+            too — it is the one section every visitor scrolls to. */}
+        <aside className="app__footer-elsewhere">
+          <p className="mono-text">Elsewhere</p>
+          <ul>
+            {socialLinks.map(({ label, href, Icon }) => (
+              <li key={label}>
+                <a href={href} target="_blank" rel="noreferrer">
+                  <Icon aria-hidden="true" />
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </div>
     </>
   );
 };
 
 export default AppWrap(
-  MotionWrap(Footer, 'app__footer'),
+  MotionWrap(Footer, 'app__footer-section'),
   'contact',
-  'app__whitebg',
+  'app__band-b',
 );

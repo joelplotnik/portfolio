@@ -22,8 +22,6 @@ import mongo from '../assets/mongodb.png';
 import mysql from '../assets/mysql.png';
 
 import profile from '../assets/profile.png';
-import circle from '../assets/circle.svg';
-import logo from '../assets/logo.png';
 import email from '../assets/email.png';
 import mobile from '../assets/mobile.png';
 
@@ -58,8 +56,6 @@ const images = {
   react,
   sass,
   profile,
-  circle,
-  logo,
   amazon,
   hunter,
   palomar,

@@ -2,21 +2,19 @@ import { sections } from '../constants';
 
 const NavigationDots = ({ active }) => {
   return (
-    <div className="app__navigation">
+    <nav className="app__navigation" aria-label="Section navigation">
       {sections.map((item) => (
         <a
           href={`#${item}`}
           key={item}
           className="app__navigation-dot"
           aria-label={`Navigate to ${item}`}
-          style={
-            active === item ? { backgroundColor: 'var(--secondary-color)' } : {}
-          }
+          aria-current={active === item ? 'true' : undefined}
         >
           <span className="sr-only">{item}</span>
         </a>
       ))}
-    </div>
+    </nav>
   );
 };
 
