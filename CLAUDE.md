@@ -9,7 +9,7 @@ Portfolio/
 ├── netlify.toml          # deploy config (base = frontend_react)
 ├── .nvmrc                # Node 22
 ├── frontend_react/       # Vite 8 + React 18 — the actual site
-└── backend_sanity/       # Sanity Studio v2 — content schemas + admin UI
+└── backend_sanity/       # Sanity Studio v6 — content schemas + admin UI
 ```
 
 There is **no** root `package.json` and no npm workspace — the two apps are independent, with conflicting trees (React 18 vs React 17). Always `cd` into one of them before running anything. Both use **npm**; their `package-lock.json` files are committed.
@@ -25,9 +25,13 @@ cd frontend_react && npm run preview    # serve the production build locally
 cd frontend_react && npm run lint
 
 # Sanity Studio (http://localhost:3333)
-cd backend_sanity && sanity start
-cd backend_sanity && sanity deploy      # publishes the hosted studio
+cd backend_sanity && npm install
+cd backend_sanity && npm run dev        # `sanity dev` — v2's `sanity start` is gone
+cd backend_sanity && npm run build      # → backend_sanity/dist/
+cd backend_sanity && npm run deploy     # publishes the hosted studio
 ```
+
+**Always go through the npm scripts, never a bare `sanity`.** The scripts resolve the CLI from `node_modules`; a globally installed `sanity` shadows it and fails in misleading ways — a stale v2 global, and a v6 global installed under the wrong Node version, both did exactly that during the migration.
 
 There is no test suite. **`npm run build` does not lint** — Vite and ESLint are separate, unlike CRA where linting ran inside the build. Run `npm run lint` yourself before pushing, or chain it into `build` if you want deploys to fail on lint errors.
 
@@ -87,9 +91,14 @@ Local static images are imported and re-exported through [constants/images.js](f
 
 ## Sanity backend
 
-Studio **v2** (`@sanity/base` ^2.30, React 17, parts-based `sanity.json`). This is a legacy generation — v3+ config syntax (`sanity.config.js`, `defineType`) will not work here. Don't upgrade the studio piecemeal.
+Studio **v6** (`sanity` ^6, React 19, styled-components 6). Two config files, split by purpose:
 
-Schemas in [backend_sanity/schemas/](backend_sanity/schemas/); a new schema file must be imported **and** added to the `types` array in [schema.js](backend_sanity/schemas/schema.js) or it won't appear.
+- [sanity.config.js](backend_sanity/sanity.config.js) — the Studio itself: schema types and plugins
+- [sanity.cli.js](backend_sanity/sanity.cli.js) — what the `sanity` CLI reads for build/deploy/dataset commands
+
+Schemas in [backend_sanity/schemas/](backend_sanity/schemas/); a new schema file must be imported **and** added to the `schemaTypes` array in [schemas/index.js](backend_sanity/schemas/index.js) or it won't appear. Plain objects are fine — `defineType` is optional and unused here.
+
+Validate changes with `npx sanity schema validate`; it catches bad type references without starting the Studio.
 
 | Type | Notes |
 |---|---|
@@ -102,7 +111,7 @@ Schemas in [backend_sanity/schemas/](backend_sanity/schemas/); a new schema file
 | `brands` | imgUrl, name |
 | `contact` | name, email, message — **written by the site**, not authored in the studio |
 
-The `sanity-plugin-order-documents` plugin provides the drag-ordering that populates `experiences.order`; `Skills.jsx` queries `| order(order asc)` to respect it.
+`experiences.order` is a plain editable number and `Skills.jsx` queries `| order(order asc)`. It used to be hidden and driven by `sanity-plugin-order-documents`, which was abandoned in 2022 and never ported past Studio v2. With three documents, an editable number beat adopting `@sanity/orderable-document-list` — that would have meant an `orderRank` field, a data migration, and a frontend query change. **Set `order` explicitly on any new entry**, or it sorts as null.
 
 ### Known data traps
 
@@ -150,7 +159,7 @@ The Sanity Studio is **not** deployed by Netlify; it publishes separately with `
 - **Commit the lockfiles.** `frontend_react/package-lock.json` and `backend_sanity/package-lock.json` are tracked on purpose — Netlify installs from a fresh clone, so an untracked lockfile means every deploy re-resolves the whole tree and inherits upstream breakage like the typescript issue above.
 - Styling uses dart-sass. Don't reintroduce `node-sass` — it caps out around Node 17. No SCSS here uses `@import` or legacy `/` division, so it's clean against dart-sass deprecations.
 - Env vars reach the browser through `import.meta.env`, **not** `process.env` — Vite does not shim the latter. `vite.config.js` sets `envPrefix: ["VITE_", "REACT_APP_"]` so the pre-existing `REACT_APP_*` names still work and no Netlify changes were needed. Inside `netlify/functions/` it is still real Node, so `process.env` is correct there.
-- `backend_sanity` uses **npm**, but a stale `yarn.lock` also sits there. Don't install with yarn; the two managers resolve this v2 dependency tree differently.
+- `backend_sanity` uses **npm**. It needs Node >=22.12 (declared in its `engines`), same toolchain as the frontend.
 - `frontend_react/build/` is git-ignored build output that's present on disk. Don't read it to understand current source.
 - **Node is pinned to 22** by `.nvmrc` and `netlify.toml`; keep the two in sync. Vite 8 and sass 1.103 both require `>=20.19`. `frontend_react` declares `engines.node` and runs `scripts/require-node.mjs` before `dev`/`start`/`build`, so an old Node fails with a readable message instead of a `styleText` SyntaxError from inside rolldown.
 - **Never run `npm install`/`npm ci` for the frontend on Node 18.** Its npm 8 has an optional-dependency bug (npm/cli#4828) that silently skips rolldown's platform binary, and the build then dies with "Cannot find native binding". The lockfile is fine when this happens — `rm -rf node_modules && npm ci` on Node 22 fixes it.

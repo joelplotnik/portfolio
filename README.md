@@ -5,7 +5,7 @@ A modern portfolio website built with React and Sanity CMS, featuring smooth ani
 ## Tech Stack
 
 - **Frontend**: React 18, Vite 5, Framer Motion, SCSS
-- **Backend**: Sanity CMS (Headless CMS)
+- **Backend**: Sanity Studio v6 (Headless CMS)
 - **Deployment**: Netlify
 
 ## Project Structure
@@ -26,7 +26,7 @@ into the app you're working on first. Both use npm.
 
 ### Prerequisites
 
-- Node.js 18 (see `.nvmrc` — `nvm use` will pick it up)
+- Node.js 22 (see `.nvmrc` — run `nvm use`, or `nvm alias default 22` to make it stick)
 - npm
 - Sanity account (for CMS backend)
 
@@ -47,10 +47,15 @@ npm install
 3. Start the Sanity studio:
 
 ```bash
-sanity start
+npm run dev
 ```
 
-This will start the Sanity CMS studio at `http://localhost:3333`
+This starts the Sanity Studio at `http://localhost:3333`.
+
+> Always use the npm scripts rather than a bare `sanity` command. The scripts
+> resolve the CLI from `node_modules`, so they get the version this project
+> expects. A globally installed `sanity` will shadow it and fail confusingly.
+> Note also that `sanity start` no longer exists — it became `sanity dev`.
 
 ### Frontend Setup
 
@@ -118,7 +123,7 @@ npm ci          # installs exactly the committed lockfile, as Netlify does
 npm run build
 ```
 
-The Sanity Studio is deployed separately with `sanity deploy`, not by Netlify.
+The Sanity Studio is deployed separately with `npm run deploy` from `backend_sanity/`, not by Netlify.
 
 ## Features
 
@@ -147,13 +152,13 @@ The portfolio content is managed through Sanity CMS. You can:
 - Manage testimonials
 - Modify personal information
 
-Access the CMS at `http://localhost:3333` when running `sanity start`.
+Access the CMS at `http://localhost:3333` when running `npm run dev` from `backend_sanity/`.
 
 ## Development
 
 ### Adding New Projects
 
-1. Open Sanity CMS (`sanity start`)
+1. Open the Studio (`cd backend_sanity && npm run dev`)
 2. Navigate to "Work" section
 3. Add new project with:
    - Title
@@ -183,8 +188,9 @@ Note that `npm run build` does **not** run ESLint; they are separate steps.
 
 ### Backend (`backend_sanity/package.json`)
 
-- `sanity start` - Start Sanity studio
-- `sanity build` - Build for production
+- `npm run dev` - Start the Studio on port 3333
+- `npm run build` - Build the Studio into `dist/`
+- `npm run deploy` - Publish the hosted Studio
 
 ## License
 
