@@ -139,28 +139,28 @@
   max-width: 420px;
   margin-left: auto;
 
-  /* The portrait is a cut-out PNG. On a light theme it sat on a decorative
-     circle; here it sits in a panel that fades into the page instead. */
+  /* The portrait is a cut-out PNG, so it needs a backdrop of its own. The
+     frame is load-bearing: without it the radial below clips at the
+     element's invisible box edge, and the figure loses its silhouette. */
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  /* A studio backdrop rather than a flat fill: light at the shoulders,
-     falling off toward the edges, so the black-clad figure keeps its
-     silhouette without the panel becoming a bright slab. */
+
+  /* Both stops are existing palette steps rather than one-off values, so
+     the panel sits on the same scale as every other surface: --border-strong
+     is the system's lightest value, --surface-2 its lightest surface.
+
+     The radial is centred at 46% because the shoulders sit there, and that
+     is the one place the backdrop has to stay light enough to hold the edge
+     of a black shirt. Centring it on the head instead dropped the shoulders
+     to 1.04:1 against the shirt, which is the "floating body" look. */
   background:
-    /* Centred on the torso, not the head. The figure's shoulders sit near
-       45% of the panel, and that is the one place the backdrop has to stay
-       light enough to keep a black shirt's edge readable; centring this on
-       the head instead left the shoulders at 1.04:1 against the shirt,
-       which is the "floating body" look. */
-    radial-gradient(110% 88% at 50% 46%, var(--surface-photo), transparent 76%),
-    /* Holds a floor through the upper half, then falls to the page colour
-       for the bottom fade to meet. */
+    radial-gradient(110% 88% at 50% 46%, var(--border-strong), transparent 76%),
     linear-gradient(
-        180deg,
-        var(--surface-photo-deep) 0%,
-        var(--surface-photo-deep) 52%,
-        var(--bg) 100%
-      );
+      180deg,
+      var(--surface-2) 0%,
+      var(--surface-2) 52%,
+      var(--bg) 100%
+    );
   overflow: hidden;
 
   /* Sits over the cut-out portrait so it fades into the panel instead of
